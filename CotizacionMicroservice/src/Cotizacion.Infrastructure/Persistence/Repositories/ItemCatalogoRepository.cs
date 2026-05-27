@@ -14,6 +14,6 @@ public sealed class ItemCatalogoRepository(CotizacionDbContext context)
     public async Task<IEnumerable<ItemCatalogo>> GetByActividadIdAsync(Guid actividadId, CancellationToken cancellationToken = default) =>
         await Context.ItemsCatalogo
             .Include(i => i.Actividad)
-            .Where(i => i.ActividadId == actividadId && i.Activo)
+            .Where(i => i.ActividadId == actividadId)
             .ToListAsync(cancellationToken);
 }

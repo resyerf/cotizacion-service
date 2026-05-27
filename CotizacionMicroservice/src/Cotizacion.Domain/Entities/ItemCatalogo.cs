@@ -1,4 +1,5 @@
 using Cotizacion.Domain.Common;
+using Cotizacion.Domain.Enums;
 using Cotizacion.Domain.Exceptions;
 
 namespace Cotizacion.Domain.Entities;
@@ -10,13 +11,16 @@ public sealed class ItemCatalogo : AggregateRoot<Guid>
     public string Descripcion { get; private set; } = string.Empty;
     public string Unidad { get; private set; } = string.Empty;
     public decimal PrecioBase { get; private set; }
+    public Moneda Moneda { get; private set; } = Moneda.USD;
     public bool Activo { get; private set; } = true;
 
     public Actividad? Actividad { get; private set; }
 
     private ItemCatalogo() { }
 
-    public static ItemCatalogo Crear(Guid actividadId, string codigo, string descripcion, string unidad, decimal precioBase)
+    public static ItemCatalogo Crear(
+        Guid actividadId, string codigo, string descripcion,
+        string unidad, decimal precioBase, Moneda moneda)
     {
         if (actividadId == Guid.Empty)
             throw new DomainException("La actividad es requerida.");
@@ -36,16 +40,33 @@ public sealed class ItemCatalogo : AggregateRoot<Guid>
             Codigo = codigo.Trim(),
             Descripcion = descripcion.Trim(),
             Unidad = unidad.Trim(),
-            PrecioBase = precioBase
+            PrecioBase = precioBase,
+            Moneda = moneda
         };
     }
 
-    public void ActualizarPrecio(decimal nuevoPrecio)
+    public void Actualizar(Guid actividadId, string descripcion, string unidad, decimal precioBase, Moneda moneda)
     {
-        if (nuevoPrecio < 0)
+        if (actividadId == Guid.Empty)
+            throw new DomainException("La actividad es requerida.");
+        if (string.IsNullOrWhiteSpace(descripcion))
+            throw new DomainException("La descripción del item es requerida.");
+        if (string.IsNullOrWhiteSpace(unidad))
+            throw new DomainException("La unidad del item es requerida.");
+        if (precioBase < 0)
             throw new DomainException("El precio no puede ser negativo.");
-        PrecioBase = nuevoPrecio;
+
+        ActividadId = actividadId;
+        Descripcion = descripcion.Trim();
+        Unidad = unidad.Trim();
+        PrecioBase = precioBase;
+        Moneda = moneda;
+        MarkUpdated();
     }
 
-    public void Desactivar() => Activo = false;
+    public void Desactivar()
+    {
+        Activo = false;
+        MarkUpdated();
+    }
 }

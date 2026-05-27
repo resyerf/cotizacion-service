@@ -1,3 +1,5 @@
+using Cotizacion.Domain.Enums;
+
 namespace Cotizacion.Application.DTOs;
 
 public record ItemCatalogoDto(
@@ -8,4 +10,5 @@ public record ItemCatalogoDto(
     string Descripcion,
     string Unidad,
     decimal PrecioBase,
+    Moneda Moneda,
     bool Activo);

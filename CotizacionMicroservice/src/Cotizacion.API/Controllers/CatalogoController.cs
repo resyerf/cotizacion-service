@@ -1,8 +1,13 @@
+using Cotizacion.Application.Commands.Catalogo.ActualizarActividad;
+using Cotizacion.Application.Commands.Catalogo.ActualizarItemCatalogo;
 using Cotizacion.Application.Commands.Catalogo.CrearActividad;
 using Cotizacion.Application.Commands.Catalogo.CrearItemCatalogo;
+using Cotizacion.Application.Commands.Catalogo.DesactivarActividad;
+using Cotizacion.Application.Commands.Catalogo.DesactivarItemCatalogo;
 using Cotizacion.Application.DTOs;
 using Cotizacion.Application.Queries.Catalogo.GetActividades;
 using Cotizacion.Application.Queries.Catalogo.GetItemsCatalogo;
+using Cotizacion.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,8 +19,9 @@ namespace Cotizacion.API.Controllers;
 [Produces("application/json")]
 public sealed class CatalogoController(IMediator mediator) : ControllerBase
 {
+    // ── Actividades ──────────────────────────────────────────────
+
     /// <summary>Lista todas las actividades del catálogo.</summary>
-    /// <response code="200">Lista de actividades.</response>
     [HttpGet("actividades")]
     [ProducesResponseType(typeof(IEnumerable<ActividadDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetActividades(CancellationToken cancellationToken)
@@ -25,8 +31,6 @@ public sealed class CatalogoController(IMediator mediator) : ControllerBase
     }
 
     /// <summary>Crea una nueva actividad en el catálogo.</summary>
-    /// <response code="201">Actividad creada exitosamente.</response>
-    /// <response code="400">Datos de entrada inválidos.</response>
     [HttpPost("actividades")]
     [ProducesResponseType(typeof(ActividadDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -36,10 +40,32 @@ public sealed class CatalogoController(IMediator mediator) : ControllerBase
         return Created($"api/catalogo/actividades/{result.Id}", result);
     }
 
+    /// <summary>Actualiza una actividad del catálogo.</summary>
+    [HttpPut("actividades/{id:guid}")]
+    [ProducesResponseType(typeof(ActividadDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateActividad(Guid id, [FromBody] ActualizarActividadBody body, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new ActualizarActividadCommand(id, body.Nombre, body.Orden),
+            cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Desactiva una actividad (borrado lógico).</summary>
+    [HttpDelete("actividades/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeactivateActividad(Guid id, CancellationToken cancellationToken)
+    {
+        await mediator.Send(new DesactivarActividadCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    // ── Items ────────────────────────────────────────────────────
+
     /// <summary>Lista los ítems del catálogo, opcionalmente filtrados por actividad.</summary>
-    /// <param name="actividadId">ID de la actividad para filtrar (opcional).</param>
-    /// <param name="cancellationToken"></param>
-    /// <response code="200">Lista de ítems del catálogo.</response>
     [HttpGet("items")]
     [ProducesResponseType(typeof(IEnumerable<ItemCatalogoDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetItems([FromQuery] Guid? actividadId, CancellationToken cancellationToken)
@@ -49,8 +75,6 @@ public sealed class CatalogoController(IMediator mediator) : ControllerBase
     }
 
     /// <summary>Crea un nuevo ítem en el catálogo.</summary>
-    /// <response code="201">Ítem creado exitosamente.</response>
-    /// <response code="400">Datos de entrada inválidos.</response>
     [HttpPost("items")]
     [ProducesResponseType(typeof(ItemCatalogoDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -59,4 +83,36 @@ public sealed class CatalogoController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(command, cancellationToken);
         return Created($"api/catalogo/items/{result.Id}", result);
     }
+
+    /// <summary>Actualiza un ítem del catálogo.</summary>
+    [HttpPut("items/{id:guid}")]
+    [ProducesResponseType(typeof(ItemCatalogoDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateItem(Guid id, [FromBody] ActualizarItemCatalogoBody body, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new ActualizarItemCatalogoCommand(id, body.ActividadId, body.Descripcion, body.Unidad, body.PrecioBase, body.Moneda),
+            cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Desactiva un ítem del catálogo (borrado lógico).</summary>
+    [HttpDelete("items/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeactivateItem(Guid id, CancellationToken cancellationToken)
+    {
+        await mediator.Send(new DesactivarItemCatalogoCommand(id), cancellationToken);
+        return NoContent();
+    }
 }
+
+public record ActualizarActividadBody(string Nombre, int Orden);
+
+public record ActualizarItemCatalogoBody(
+    Guid ActividadId,
+    string Descripcion,
+    string Unidad,
+    decimal PrecioBase,
+    Moneda Moneda);

@@ -18,9 +18,10 @@ public sealed class GetItemsCatalogoQueryHandler(
             .ToDictionary(a => a.Id, a => a.Nombre);
 
         return items
-            .Where(i => i.Activo)
+            .OrderBy(i => actividades.GetValueOrDefault(i.ActividadId, string.Empty))
+            .ThenBy(i => i.Codigo)
             .Select(i => new ItemCatalogoDto(i.Id, i.ActividadId,
                 actividades.GetValueOrDefault(i.ActividadId, string.Empty),
-                i.Codigo, i.Descripcion, i.Unidad, i.PrecioBase, i.Activo));
+                i.Codigo, i.Descripcion, i.Unidad, i.PrecioBase, i.Moneda, i.Activo));
     }
 }

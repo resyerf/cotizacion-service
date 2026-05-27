@@ -1,4 +1,5 @@
 using Cotizacion.Domain.Entities;
+using Cotizacion.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,6 +19,7 @@ public sealed class ItemCatalogoConfiguration : IEntityTypeConfiguration<ItemCat
         builder.Property(x => x.Descripcion).IsRequired().HasColumnType("text");
         builder.Property(x => x.Unidad).IsRequired().HasMaxLength(30);
         builder.Property(x => x.PrecioBase).IsRequired().HasColumnType("numeric(14,2)");
+        builder.Property(x => x.Moneda).IsRequired().HasConversion<int>().HasDefaultValue(Moneda.USD);
         builder.Property(x => x.Activo).IsRequired().HasDefaultValue(true);
 
         builder.HasIndex(x => x.Codigo).IsUnique();

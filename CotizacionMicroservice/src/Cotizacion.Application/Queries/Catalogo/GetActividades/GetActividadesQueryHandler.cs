@@ -9,7 +9,9 @@ public sealed class GetActividadesQueryHandler(IActividadRepository actividadRep
 {
     public async Task<IEnumerable<ActividadDto>> Handle(GetActividadesQuery request, CancellationToken cancellationToken)
     {
-        var actividades = await actividadRepository.GetActivasOrdenadasAsync(cancellationToken);
-        return actividades.Select(a => new ActividadDto(a.Id, a.Codigo, a.Nombre, a.Orden, a.Activo));
+        var actividades = await actividadRepository.GetAllAsync(cancellationToken);
+        return actividades
+            .OrderBy(a => a.Orden)
+            .Select(a => new ActividadDto(a.Id, a.Codigo, a.Nombre, a.Orden, a.Activo));
     }
 }

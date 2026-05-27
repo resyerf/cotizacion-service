@@ -20,10 +20,13 @@ public sealed class CrearItemCatalogoCommandHandler(
         if (await itemRepository.ExisteCodigoAsync(request.Codigo, cancellationToken: cancellationToken))
             throw new DomainException($"Ya existe un item con código '{request.Codigo}'.");
 
-        var item = ItemCatalogo.Crear(request.ActividadId, request.Codigo, request.Descripcion, request.Unidad, request.PrecioBase);
+        var item = ItemCatalogo.Crear(request.ActividadId, request.Codigo, request.Descripcion,
+            request.Unidad, request.PrecioBase, request.Moneda);
+
         await itemRepository.AddAsync(item, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new ItemCatalogoDto(item.Id, item.ActividadId, actividad.Nombre, item.Codigo, item.Descripcion, item.Unidad, item.PrecioBase, item.Activo);
+        return new ItemCatalogoDto(item.Id, item.ActividadId, actividad.Nombre,
+            item.Codigo, item.Descripcion, item.Unidad, item.PrecioBase, item.Moneda, item.Activo);
     }
 }

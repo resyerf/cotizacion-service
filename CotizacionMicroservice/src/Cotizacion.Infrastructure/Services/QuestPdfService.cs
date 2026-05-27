@@ -11,6 +11,7 @@ public sealed class QuestPdfService : IPdfService
 {
     private const string ColBrand   = "#4f46e5";
     private const string ColDark    = "#0f172a";
+    private const string ColActBg   = "#1e293b";
     private const string ColMuted   = "#64748b";
     private const string ColBorder  = "#e2e8f0";
     private const string ColBgLight = "#f8f9fb";
@@ -178,7 +179,7 @@ public sealed class QuestPdfService : IPdfService
                 table.ColumnsDefinition(cols =>
                 {
                     cols.ConstantColumn(22, Unit.Millimetre);  // ÍTEM
-                    cols.RelativeColumn(3);                     // ENSAYO (flexible, wraps)
+                    cols.RelativeColumn(3);                     // DESCRIPCIÓN
                     cols.ConstantColumn(14, Unit.Millimetre);  // UNIDAD
                     cols.ConstantColumn(28, Unit.Millimetre);  // COSTO
                     cols.ConstantColumn(16, Unit.Millimetre);  // CANTIDAD
@@ -192,7 +193,7 @@ public sealed class QuestPdfService : IPdfService
                           .Text("ÍTEM").FontSize(7).Bold().FontColor(Colors.White);
 
                     header.Cell().Background(ColDark).Padding(6).PaddingVertical(7).AlignMiddle()
-                          .Text("ENSAYO").FontSize(7).Bold().FontColor(Colors.White);
+                          .Text("DESCRIPCIÓN").FontSize(7).Bold().FontColor(Colors.White);
 
                     header.Cell().Background(ColDark).Padding(6).PaddingVertical(7).AlignMiddle().AlignCenter()
                           .Text("UNIDAD").FontSize(7).Bold().FontColor(Colors.White);
@@ -207,46 +208,57 @@ public sealed class QuestPdfService : IPdfService
                           .Text("SUB TOTAL").FontSize(7).Bold().FontColor(Colors.White);
                 });
 
-                // Rows
-                for (int i = 0; i < c.Partidas.Count; i++)
+                // Grouped rows by activity order
+                var groups = c.Partidas
+                    .GroupBy(p => (p.ActividadOrden, p.ActividadNombre))
+                    .OrderBy(g => g.Key.ActividadOrden)
+                    .Select((g, idx) => (ActIdx: idx + 1, Name: g.Key.ActividadNombre, Items: g.ToList()))
+                    .ToList();
+
+                foreach (var (actIdx, actName, items) in groups)
                 {
-                    var p  = c.Partidas[i];
-                    var bg = i % 2 == 0 ? ColBgLight : ColBgCard;
+                    // Activity group header row
+                    table.Cell().Background(ColActBg).Padding(5).PaddingVertical(7).AlignMiddle()
+                         .Text($"{actIdx}.0").FontFamily("Courier New").FontSize(7.5f).Bold().FontColor("#94a3b8");
 
-                    // ÍTEM
-                    table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
-                         .Padding(5).PaddingVertical(6).AlignMiddle()
-                         .Text(p.ItemCodigo).FontFamily("Courier New").FontSize(7).Bold().FontColor(ColBrand);
+                    table.Cell().ColumnSpan(4).Background(ColActBg).Padding(5).PaddingVertical(7).AlignMiddle()
+                         .Text(actName).FontSize(8.5f).Bold().FontColor(Colors.White);
 
-                    // ENSAYO — wraps automatically, grows row height
-                    table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
-                         .Padding(5).PaddingVertical(6).AlignMiddle().Column(inner =>
+                    var groupTotal = items.Sum(p => p.Subtotal);
+                    table.Cell().Background(ColActBg).Padding(5).PaddingVertical(7).AlignMiddle().AlignRight()
+                         .Text(FormatMoney(groupTotal, prefix)).FontSize(8).Bold().FontColor(Colors.White);
+
+                    // Item rows within this activity group
+                    for (int j = 0; j < items.Count; j++)
                     {
-                        inner.Item().Text(p.ItemDescripcion).FontSize(8);
-                        if (!string.IsNullOrWhiteSpace(p.ActividadNombre))
-                            inner.Item().PaddingTop(1)
-                                 .Text(p.ActividadNombre).FontSize(6.5f).FontColor(ColMuted);
-                    });
+                        var p  = items[j];
+                        var bg = j % 2 == 0 ? ColBgLight : ColBgCard;
+                        var correlativo = $"{actIdx}.{j + 1}";
 
-                    // UNIDAD
-                    table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
-                         .Padding(5).PaddingVertical(6).AlignMiddle().AlignCenter()
-                         .Text(p.ItemUnidad).FontSize(8);
+                        table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
+                             .Padding(5).PaddingVertical(6).AlignMiddle()
+                             .Text(correlativo).FontFamily("Courier New").FontSize(7).Bold().FontColor(ColBrand);
 
-                    // COSTO
-                    table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
-                         .Padding(5).PaddingVertical(6).AlignMiddle().AlignRight()
-                         .Text(FormatMoney(p.PrecioUnitario, prefix)).FontSize(8);
+                        table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
+                             .Padding(5).PaddingVertical(6).AlignMiddle()
+                             .Text(p.ItemDescripcion).FontSize(8);
 
-                    // CANTIDAD
-                    table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
-                         .Padding(5).PaddingVertical(6).AlignMiddle().AlignRight()
-                         .Text(p.Cantidad.HasValue ? p.Cantidad.Value.ToString("G") : "—").FontSize(8);
+                        table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
+                             .Padding(5).PaddingVertical(6).AlignMiddle().AlignCenter()
+                             .Text(p.ItemUnidad).FontSize(8);
 
-                    // SUB TOTAL
-                    table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
-                         .Padding(5).PaddingVertical(6).AlignMiddle().AlignRight()
-                         .Text(FormatMoney(p.Subtotal, prefix)).FontSize(8).Bold();
+                        table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
+                             .Padding(5).PaddingVertical(6).AlignMiddle().AlignRight()
+                             .Text(FormatMoney(p.PrecioUnitario, prefix)).FontSize(8);
+
+                        table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
+                             .Padding(5).PaddingVertical(6).AlignMiddle().AlignRight()
+                             .Text(p.Cantidad.HasValue ? p.Cantidad.Value.ToString("G") : "—").FontSize(8);
+
+                        table.Cell().Background(bg).BorderBottom(0.3f).BorderColor(ColBorder)
+                             .Padding(5).PaddingVertical(6).AlignMiddle().AlignRight()
+                             .Text(FormatMoney(p.Subtotal, prefix)).FontSize(8).Bold();
+                    }
                 }
 
                 // Total

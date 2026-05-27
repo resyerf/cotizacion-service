@@ -35,6 +35,7 @@ public record CotizacionPartidaDto(
     string ItemDescripcion,
     string ItemUnidad,
     string ActividadNombre,
+    int    ActividadOrden,
     decimal PrecioUnitario,
     decimal? Cantidad,
     decimal Subtotal);

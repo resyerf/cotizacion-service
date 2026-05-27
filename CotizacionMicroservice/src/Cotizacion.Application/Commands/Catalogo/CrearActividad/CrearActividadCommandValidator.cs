@@ -6,8 +6,6 @@ public sealed class CrearActividadCommandValidator : AbstractValidator<CrearActi
 {
     public CrearActividadCommandValidator()
     {
-        RuleFor(x => x.Codigo).NotEmpty().MaximumLength(10);
         RuleFor(x => x.Nombre).NotEmpty().MaximumLength(255);
-        RuleFor(x => x.Orden).GreaterThanOrEqualTo(0);
     }
 }

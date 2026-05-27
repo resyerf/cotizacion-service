@@ -11,5 +11,6 @@ public sealed class CrearItemCatalogoCommandValidator : AbstractValidator<CrearI
         RuleFor(x => x.Descripcion).NotEmpty().MaximumLength(500);
         RuleFor(x => x.Unidad).NotEmpty().MaximumLength(30);
         RuleFor(x => x.PrecioBase).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Moneda).IsInEnum();
     }
 }

@@ -1,7 +1,6 @@
 using Cotizacion.Application.Common;
 using Cotizacion.Application.DTOs;
 using Cotizacion.Domain.Entities;
-using Cotizacion.Domain.Exceptions;
 using Cotizacion.Domain.Interfaces.Repositories;
 using MediatR;
 
@@ -13,10 +12,15 @@ public sealed class CrearActividadCommandHandler(
 {
     public async Task<ActividadDto> Handle(CrearActividadCommand request, CancellationToken cancellationToken)
     {
-        if (await actividadRepository.ExisteCodigoAsync(request.Codigo, cancellationToken: cancellationToken))
-            throw new DomainException($"Ya existe una actividad con código '{request.Codigo}'.");
+        var todas = await actividadRepository.GetAllAsync(cancellationToken);
+        var orden = todas.Count() + 1;
 
-        var actividad = Actividad.Crear(request.Codigo, request.Nombre, request.Orden);
+        // Auto-generate a unique short code
+        string codigo;
+        do { codigo = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant(); }
+        while (await actividadRepository.ExisteCodigoAsync(codigo, cancellationToken: cancellationToken));
+
+        var actividad = Actividad.Crear(codigo, request.Nombre, orden);
         await actividadRepository.AddAsync(actividad, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

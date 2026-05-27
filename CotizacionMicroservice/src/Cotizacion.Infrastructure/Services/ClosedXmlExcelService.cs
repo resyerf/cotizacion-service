@@ -74,8 +74,9 @@ public sealed class ClosedXmlExcelService : IExcelService
 
         // ── Partidas grouped by activity ──────────────────────────
         var groups = c.Partidas
-            .GroupBy(p => p.ActividadNombre, StringComparer.OrdinalIgnoreCase)
-            .Select((g, idx) => (Index: idx + 1, Name: g.Key, Items: g.ToList()))
+            .GroupBy(p => (p.ActividadOrden, p.ActividadNombre))
+            .OrderBy(g => g.Key.ActividadOrden)
+            .Select((g, idx) => (Index: idx + 1, Name: g.Key.ActividadNombre, Items: g.ToList()))
             .ToList();
 
         foreach (var (actIdx, actName, items) in groups)

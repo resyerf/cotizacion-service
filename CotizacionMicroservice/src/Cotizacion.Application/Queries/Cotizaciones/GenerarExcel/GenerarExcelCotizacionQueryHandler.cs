@@ -24,13 +24,16 @@ public sealed class GenerarExcelCotizacionQueryHandler(
             cliente.Id, cliente.Nombre, cliente.Ruc,
             cliente.Email, cliente.Telefono, cliente.Direccion, cliente.Activo);
 
-        var partidas = cotizacion.Partidas.Select(p => new CotizacionPartidaDto(
-            p.Id, p.ItemCatalogoId,
-            p.ItemCatalogo?.Codigo ?? string.Empty,
-            p.ItemCatalogo?.Descripcion ?? string.Empty,
-            p.ItemCatalogo?.Unidad ?? string.Empty,
-            p.ItemCatalogo?.Actividad?.Nombre ?? string.Empty,
-            p.PrecioUnitario, p.Cantidad, p.Subtotal)).ToList();
+        var partidas = cotizacion.Partidas
+            .OrderBy(p => p.ItemCatalogo?.Actividad?.Orden ?? int.MaxValue)
+            .Select(p => new CotizacionPartidaDto(
+                p.Id, p.ItemCatalogoId,
+                p.ItemCatalogo?.Codigo ?? string.Empty,
+                p.ItemCatalogo?.Descripcion ?? string.Empty,
+                p.ItemCatalogo?.Unidad ?? string.Empty,
+                p.ItemCatalogo?.Actividad?.Nombre ?? string.Empty,
+                p.ItemCatalogo?.Actividad?.Orden ?? 0,
+                p.PrecioUnitario, p.Cantidad, p.Subtotal)).ToList();
 
         var dto = new CotizacionDetalleDto(
             cotizacion.Id, cotizacion.Numero, cotizacion.Proyecto, cotizacion.Ubicacion,

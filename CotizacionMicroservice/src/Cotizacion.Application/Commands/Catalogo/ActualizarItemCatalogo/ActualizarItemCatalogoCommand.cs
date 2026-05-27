@@ -2,11 +2,11 @@ using Cotizacion.Application.DTOs;
 using Cotizacion.Domain.Enums;
 using MediatR;
 
-namespace Cotizacion.Application.Commands.Catalogo.CrearItemCatalogo;
+namespace Cotizacion.Application.Commands.Catalogo.ActualizarItemCatalogo;
 
-public record CrearItemCatalogoCommand(
+public record ActualizarItemCatalogoCommand(
+    Guid Id,
     Guid ActividadId,
-    string Codigo,
     string Descripcion,
     string Unidad,
     decimal PrecioBase,
