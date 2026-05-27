@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Cotizacion.API/Cotizacion.API.csproj" />
+    <Project Path="src/Cotizacion.Application/Cotizacion.Application.csproj" />
+    <Project Path="src/Cotizacion.Domain/Cotizacion.Domain.csproj" />
+    <Project Path="src/Cotizacion.Infrastructure/Cotizacion.Infrastructure.csproj" />
+  </Folder>
+</Solution>

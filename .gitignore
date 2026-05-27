@@ -1,55 +1,65 @@
-# Prerequisites
-*.d
+# Build results
+bin/
+obj/
+out/
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# Visual Studio Code settings
+.vscode/
 
-# Precompiled Headers
-*.gch
-*.pch
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
+# ASP.NET Secrets
+secrets.json
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+# Logs
+*.log
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+# Rider IDE
+.idea/
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+# Auto-generated files
+Generated/
+**/Generated/
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# dotnet tools
+/.tools/
 
-# debug information files
-*.dwo
+# .NET Core specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+*.nuspec
+*.psmdcp
+
+# Entity Framework Migrations snapshot
+*Migrations/*Designer.cs
+*Migrations/*Snapshot.cs
+
+# Optional: test results
+TestResults/
+
+# Publish directory
+publish/
+*.publish.xml
+
+# Others
+*.vspscc
+*.vssscc
+
+# Visual Studio
+.vs/
+
