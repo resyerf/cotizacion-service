@@ -35,6 +35,11 @@ RUN dotnet publish ./CotizacionMicroservice/src/Cotizacion.API/Cotizacion.API.cs
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
+# libgssapi-krb5-2 is required by Npgsql for GSSAPI negotiation with PostgreSQL
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+ && rm -rf /var/lib/apt/lists/*
+
 # Non-root user for security
 RUN groupadd --system --gid 1001 appgroup \
  && useradd  --system --uid 1001 --gid appgroup --no-create-home appuser \
